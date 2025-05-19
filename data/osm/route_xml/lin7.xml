@@ -1,0 +1,101 @@
+<osm version="0.6" generator="CGImap 0.8.8 (2341041 spike-06.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+<relation id="2441936" visible="true" version="74" changeset="130122034" timestamp="2022-12-15T16:12:59Z" user="Martin2035" uid="6588887">
+<member type="node" ref="9891762548" role="stop"/>
+<member type="node" ref="3406725840" role="stop"/>
+<member type="node" ref="9351327819" role="stop"/>
+<member type="node" ref="8013370831" role="stop"/>
+<member type="node" ref="7734795647" role="stop"/>
+<member type="node" ref="5435897796" role="stop"/>
+<member type="node" ref="8291567889" role="stop"/>
+<member type="node" ref="246010552" role="stop"/>
+<member type="node" ref="4715556173" role="stop"/>
+<member type="node" ref="290174936" role="stop"/>
+<member type="node" ref="290174940" role="stop"/>
+<member type="node" ref="290174988" role="stop"/>
+<member type="node" ref="271278005" role="stop"/>
+<member type="node" ref="331451713" role="stop"/>
+<member type="node" ref="331451711" role="stop"/>
+<member type="node" ref="4716283382" role="stop"/>
+<member type="node" ref="4716283381" role="stop"/>
+<member type="node" ref="4716283379" role="stop"/>
+<member type="node" ref="4716283377" role="stop"/>
+<member type="node" ref="4759185035" role="stop"/>
+<member type="node" ref="1652793348" role="stop"/>
+<member type="node" ref="4696978873" role="stop"/>
+<member type="node" ref="4599701596" role="stop"/>
+<member type="node" ref="4759185031" role="stop"/>
+<member type="node" ref="1652793449" role="stop"/>
+<member type="node" ref="302371939" role="stop"/>
+<member type="node" ref="302371937" role="stop"/>
+<member type="node" ref="1652793349" role="stop"/>
+<member type="way" ref="1086561297" role=""/>
+<member type="way" ref="1056837871" role=""/>
+<member type="way" ref="1079053301" role=""/>
+<member type="way" ref="1079053300" role=""/>
+<member type="way" ref="1081946809" role=""/>
+<member type="way" ref="916583344" role=""/>
+<member type="way" ref="916583343" role=""/>
+<member type="way" ref="333538971" role=""/>
+<member type="way" ref="424203440" role=""/>
+<member type="way" ref="333538972" role=""/>
+<member type="way" ref="333540933" role=""/>
+<member type="way" ref="364627978" role=""/>
+<member type="way" ref="22634521" role=""/>
+<member type="way" ref="32617421" role=""/>
+<member type="way" ref="32548015" role=""/>
+<member type="way" ref="180051396" role=""/>
+<member type="way" ref="32548011" role=""/>
+<member type="way" ref="478593602" role=""/>
+<member type="way" ref="423933639" role=""/>
+<member type="way" ref="32548010" role=""/>
+<member type="way" ref="32548009" role=""/>
+<member type="way" ref="825262504" role=""/>
+<member type="way" ref="825262503" role=""/>
+<member type="way" ref="593090918" role=""/>
+<member type="way" ref="911533039" role=""/>
+<member type="way" ref="427782318" role=""/>
+<member type="way" ref="333597251" role=""/>
+<member type="way" ref="564147575" role=""/>
+<member type="way" ref="424199382" role=""/>
+<member type="way" ref="979410390" role=""/>
+<member type="way" ref="333597252" role=""/>
+<member type="way" ref="917404434" role=""/>
+<member type="way" ref="476601196" role=""/>
+<member type="way" ref="363523279" role=""/>
+<member type="way" ref="4640142" role=""/>
+<member type="way" ref="476017601" role=""/>
+<member type="way" ref="996102484" role=""/>
+<member type="way" ref="938201415" role=""/>
+<member type="way" ref="938201414" role=""/>
+<member type="way" ref="476017595" role=""/>
+<member type="way" ref="476017591" role=""/>
+<member type="way" ref="992638337" role=""/>
+<member type="way" ref="464921455" role=""/>
+<member type="way" ref="1122408686" role=""/>
+<member type="way" ref="914751625" role=""/>
+<member type="way" ref="464921459" role=""/>
+<member type="way" ref="464921449" role=""/>
+<member type="way" ref="915118968" role=""/>
+<member type="way" ref="915118970" role=""/>
+<member type="way" ref="915118981" role=""/>
+<member type="way" ref="465374300" role=""/>
+<member type="way" ref="483113296" role=""/>
+<member type="way" ref="914731600" role=""/>
+<member type="way" ref="152460980" role=""/>
+<tag k="from" v="Depo Hostivař"/>
+<tag k="name" v="Tram 7: Depo Hostivař ⇒ Radlická"/>
+<tag k="network" v="PID"/>
+<tag k="network:wikidata" v="Q2108171"/>
+<tag k="network:wikipedia" v="cs:Pražská integrovaná doprava"/>
+<tag k="operator" v="Dopravní podnik hlavního města Prahy"/>
+<tag k="operator:short" v="DPP"/>
+<tag k="operator:wikidata" v="Q381100"/>
+<tag k="operator:wikipedia" v="cs:Dopravní podnik hl. m. Prahy"/>
+<tag k="public_transport:version" v="2"/>
+<tag k="ref" v="7"/>
+<tag k="route" v="tram"/>
+<tag k="source" v="www.dpp.cz"/>
+<tag k="to" v="Radlická"/>
+<tag k="type" v="route"/>
+</relation>
+</osm>
