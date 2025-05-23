@@ -8,39 +8,40 @@ and the biases
 This is to test the algorithm with different noise and biases
 """
 function genmeas(mpmeas)
-    numsvs = length(mpmeas.svpos[1])
+    numsvs = length(mpmeas.SvPos[1])
     c = 299792458
-
+    
     # Copy mpmeaservations into Geodesy objects...
-    noisy_mpmeas = DataFrame()
-    noisy_mpmeas.id = mpmeas.id
-    noisy_mpmeas.time = mpmeas.time
-    noisy_mpmeas.svpos .= Ref([ECEF(0.,0.,0.) for i in 1:numsvs])
-    noisy_mpmeas.svvel .= Ref([ECEF(0.,0.,0.) for i in 1:numsvs])
-    noisy_mpmeas.recpos .= [ECEF(x.coords.x.val, x.coords.y.val, x.coords.z.val) for x in mpmeas.recpos]
-    noisy_mpmeas.rho .= Ref(zeros(numsvs))
-    # convert to Geodesy objects
-    for i in eachindex(noisy_mpmeas.svpos)
-        noisy_mpmeas.svpos[i] = [ECEF(x.coords.x.val, x.coords.y.val, x.coords.z.val) for x in mpmeas.svpos[i]]
-        noisy_mpmeas.rho[i] = [x.val for x in mpmeas.mp[i]]
-        # noisy_mpmeas.rho[i] = [x.val for x in mpmeas.pure[i]]
-    end
-    noisy_mpmeas.recvel = vcat([noisy_mpmeas.recpos[2] - noisy_mpmeas.recpos[1]], diff(noisy_mpmeas.recpos))
-
-    # Generate measurements with noise and biases
+    colnames = ["Time", "SatelliteID", "RecPos", "RecVel", "SvPos", "SvVel", "L1", "D1", "GTMeas", "MPMode", "L1_SSI"]
+    out = DataFrame([name=>[] for name in colnames])
+    
+    numsvs = length(mpmeas.SvPos[1])
     dnormal = Distributions.Normal(0, 1)
     dmultipath = Distributions.Normal(0, 3)
     dbiases = Uniform(-10,10)
     biases = rand(dbiases, numsvs)
     t_offset0 = c * 1e-5
     t_offsetrate = c*1e-6
-    noisy_mpmeas.doppler .= Ref(zeros(numsvs))
-    noisy_mpmeas.pure = mpmeas.pure
-    for i in eachindex(noisy_mpmeas.rho)
-        p = (noisy_mpmeas.svpos[i], noisy_mpmeas.svvel[i], ones(numsvs*2))
-        x = [noisy_mpmeas.recpos[i]..., noisy_mpmeas.recvel[i]..., t_offset0 + i*t_offsetrate, t_offsetrate, zeros(numsvs)...]
-        noisy_mpmeas.rho[i] .+= rand(dnormal, numsvs) + (mpmeas.mpmode[i] .> 1).*rand(dmultipath, numsvs) + biases .+ t_offset0 .+ i*t_offsetrate
-        noisy_mpmeas.doppler[i] =  meas_sim(x,nothing,p,i)[numsvs+1:end] + 0.1 .* rand(dnormal, numsvs) + 0.05 * (mpmeas.mpmode[i] .> 1).*rand(dmultipath, numsvs)
+
+
+    svpos = mpmeas.SvPos
+    svvel = mpmeas.SvVel
+
+    recpos = [ECEF(x.coords.x.val, x.coords.y.val, x.coords.z.val) for x in mpmeas.RecPos]
+    recvel = vcat([recpos[2] - recpos[1]], diff(recpos))    
+    
+    for i in eachindex(mpmeas.Time)
+        p = (svpos[i], svvel[i], ones(numsvs*2), zeros(numsvs))
+        x = [recpos[i]..., recvel[i]..., t_offset0 + i*t_offsetrate, t_offsetrate, zeros(numsvs)...]
+        L1 = [l.val for l in mpmeas.L1[i][1]] # REMOVE THE [1] LATER
+        L1 = L1 + rand(dnormal, numsvs) + (mpmeas.MPMode[i] .!= :los).*rand(dmultipath, numsvs) + biases .+ t_offset0 .+ i*t_offsetrate
+        D1 =  meas(x,nothing,p,i)[numsvs+1:end] + 0.1 .* rand(dnormal, numsvs) + 0.05 * (mpmeas.MPMode[i] .!= :los).*rand(dmultipath, numsvs)
+        for j in 1:numsvs
+            if mpmeas.MPMode[i][j] != :blocked
+                push!(out, [TimeDate(mpmeas.Time[i]),j,recpos[i],recvel[i],svpos[i][j],svvel[i][j],L1[j],D1[j],mpmeas.GTMeas[i][j],mpmeas.MPMode[i][j],3])
+            end 
+        end
     end
-    return noisy_mpmeas, biases, t_offset0, t_offsetrate
+
+    return out, biases, t_offset0, t_offsetrate
 end

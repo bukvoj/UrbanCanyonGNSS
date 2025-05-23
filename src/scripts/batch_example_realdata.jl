@@ -1,26 +1,33 @@
 
 using GLMakie #  # for plotting
-
-
 using DataFrames, Dates, TimesDates, Geodesy
 
-using LowLevelParticleFilters
-
 using RinexRead
+
+# LOAD THE PACKAGE!
+if !@isdefined(UrbanCanyonGNSS)
+    include("../src/UrbanCanyonGNSS.jl")
+    using .UrbanCanyonGNSS
+else
+    println("UrbanCanyonGNSS already loaded.")
+end
+
 
 # Input data files
 navfile = "data/2024_10_7/rinex/line22_fromhostivartopohorelec.24N"
 obsfile = "data/2024_10_7/rinex/line22_fromhostivartopohorelec.24O"
 
-include("../src/utils.jl")
-include("../src/visualisation/geoplot.jl")
 
-include("../src/trajectoryestimation/initialization.jl")
-include("../src/trajectoryestimation/trajectory.jl")
 
-include("../src/motionmodels/cvm.jl")
-include("../src/measurementmodels/measmodels.jl")
-include("../src/measurementmodels/noise_model.jl") # Realini model
+# include("../src/utils.jl")
+# include("../src/visualisation/geoplot.jl")
+
+# include("../src/trajectoryestimation/initialization.jl")
+# include("../src/trajectoryestimation/trajectory.jl")
+
+# include("../src/motionmodels/cvm.jl")
+# include("../src/measurementmodels/measmodels.jl")
+# include("../src/measurementmodels/noise_model.jl") # Realini model
 
 
 

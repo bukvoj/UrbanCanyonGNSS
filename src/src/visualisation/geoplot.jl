@@ -1,8 +1,3 @@
-# DEPENDENCIES:
-# using Tyler
-# using GLMakie / CairoMakie
-using Tyler
-
 function geoplot(lats,lons; color = :blue, style = :scatter, provider = Tyler.TileProviders.OpenStreetMap(:Mapnik), size = (900,900), markersize = 5, linewidth = 5, label = "")
     minlat = minimum(lats)
     maxlat = maximum(lats)
@@ -38,7 +33,7 @@ function geoplot!(m,lats,lons; color = :red, style = :scatter,  markersize = 5, 
     end
     
     wait(m)
-    return m, route, fig, ax # call translate!(route, 0, 0, 10) when it disappears... because... reasons...
+    return m, route, nothing, nothing # call translate!(route, 0, 0, 10) when it disappears... because... reasons...
 end
 
 

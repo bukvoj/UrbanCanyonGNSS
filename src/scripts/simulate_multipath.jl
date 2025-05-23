@@ -1,11 +1,10 @@
-using Geodesy
-using Serialization, DataFrames, XML
+using Geodesy, GeoStats
+using Serialization, DataFrames
 using NearestNeighbors
 using Statistics, LinearAlgebra, Distributions
 using Base.Threads, Distributed
 using RinexRead, GNSSEphemeris, GNSSMultipathSim
 using Dates, TimesDates
-using LowLevelParticleFilters
 
 # RINEX files
 NAV_FILE = "data/2024_10_7/rinex/line22_fromhostivartopohorelec.24N"
@@ -26,34 +25,40 @@ nav = rinexread(NAV_FILE)
 obs = rinexread(OBS_FILE)
 println("Observations loaded.")
 
-include("../src/trajectoryestimation/initialization.jl")
-include("../src/dataloaders/loadtrackmap.jl")
-include("../src/dataloaders/loadbuildings.jl")
 
-function ecef2enurotmat(lat, lon)
-    lat = lat * π / 180.0
-    lon = lon * π / 180.0
-    return [
-        -sin(lon) cos(lon) 0.0;
-        -sin(lat)*cos(lon) -sin(lat)*sin(lon) cos(lat);
-        cos(lat)*cos(lon) cos(lat)*sin(lon) sin(lat)
-    ]
+if !@isdefined(UrbanCanyonGNSS)
+    include("../src/UrbanCanyonGNSS.jl")
+    using .UrbanCanyonGNSS
+else
+    println("UrbanCanyonGNSS already loaded.")
 end
 
 
+# Load the map data
 trackmap = loadmap(OSM_TRACKMAP_FILE, OSM_ROUTE_XML)
 trackmap = resamplemap(trackmap; step = 5)
 walls = wallsfromdirectory(OSM_BUILDINGS_DIR, trackmap.center; filestartswith = OSM_BUILDINGS_PREFIX)
 println("3D map loaded.")
 
 
-
+# Generate ground truth positions
 flag = @isdefined results_already_generated
 if !flag 
     results_already_generated = true
     
-    # TODO
-    TODO: get results from trajectory.jl
+    observations_parsed = init_batch_processing(obs, nav; prevresults = nothing, useklobuchar=true, usetropospheric=true)
+    results = trajectory(observations_parsed;       # Created by init_batch_processing() or the simulation script
+               runmpestimation = false,    # Run multipath estimation algorithm
+               elanglelookup = nothing,    # Elevation angle lookup table
+               envmap=nothing,           # 3D environment map (meshgrid + track map)
+               noisemodel = nothing,       # Function that modifies the covariance matrix - has the form: measnoise!(R, x, svpos, svvel, ssi, valid)
+               kf = nothing,               # Filter to use (default is IteratedExtendedKalmanFilter with CVM model initialized at 0)
+               maskangle = 15,             # Mask angle for the filter
+               mpwinlen = 10,              # Length of the moving window for the multipath estimation
+               ssimask = 0,                # Mask for the SSI values
+               PFA = 0.01,                 # False alarm probability for the multipath estimation
+               σ = 1                       # Standard deviation of healthy pseudorange measurements (for the multipath estimation)
+        )
 
 end
 
@@ -65,12 +70,11 @@ ecef = unique(ecef)
 df.projected = proj2map.(Ref(trackmap), ecef)                                               # USES results from trajectory.jl
 x = [x[1] for x in df.projected]
 y = [x[2] for x in df.projected]
-df.recpos = [gs.Point{🌐}(Cartesian3D{WGS84Latest}(x[i], y[i], 0.0)) for i in eachindex(x)] # convert to Point objects
+df.RecPos = [GeoStats.Point{🌐}(Cartesian3D{WGS84Latest}(x[i], y[i], 0.0)) for i in eachindex(x)] # convert to Point objects
+df.Time = DateTime.(unique(results.time))
 println("Ground truth positions calculated.")
 
-
-
-# Calculate SV positions and velocities in ENU coordinates
+# Calculate SV positions and velocities
 obs = obs.data
 numsvs = renumber!(nav, obs)
 numgps = length(unique(nav.data.GPS.SatelliteID))
@@ -79,18 +83,18 @@ numgalileo = length(unique(nav.data.GALILEO.SatelliteID))
 svposses = []
 svvels = []
 println("Number of SVs: $numsvs")
-for t in df.time
+for t in df.Time
     tmp = []
     for g in 1:numgps
-        svpos = getsvpos(t + Date(2024,7,10), g, 'G', nav)
+        svpos = getsvpos(t, g, 'G', nav)
         push!(tmp, svpos)
     end
     for b in 1+numgps:numbeidou+numgps
-        svpos = getsvpos(t + Date(2024,7,10), b, 'C', nav)
+        svpos = getsvpos(t, b, 'C', nav)
         push!(tmp, svpos)
     end
     for e in 1+numgps+numbeidou:numgps+numbeidou+numgalileo
-        svpos = getsvpos(t + Date(2024,7,10), e, 'E', nav)
+        svpos = getsvpos(t, e, 'E', nav)
         push!(tmp, svpos)
     end
     tmppos = [trackmap.ecef2enu(x[1]) for x in tmp]
@@ -98,15 +102,11 @@ for t in df.time
     push!(svposses, tmppos)
     push!(svvels, tmpvel)
 end
-df.svpos = svposses
-df.svvel = svvels
+df.SvPos = svposses
+df.SvVel = svvels
 println("SV positions and velocities calculated.")
+df.Id = 1:length(df.Time)
 
-# Initialize the measurement data as empty
-df.pure .= Ref([])
-df.mp .= Ref([])
-df.mpmode .= Ref([])
-df.id = 1:length(df.time)
 
 # START OFF PARALLEL SECTION
 println("SPAWNING WORKERS")
@@ -121,15 +121,15 @@ println("SPAWNING WORKERS DONE")
 println("SPAWNING WALLS DONE")
 
 @everywhere function modifytherow(df)
-    t = df.time
-    i = df.id
+    t = df.Time
+    i = df.Id
     println("Processing measurement $i")
-    sv = df.svpos
+    sv = df.SvPos
     global walls
     sv = [GeoStats.Point{🌐}(Cartesian3D{WGS84Latest}(s[1],s[2],s[3])) for s in sv]
-    mp, mpmode = getmpmeasurements(df.recpos, sv, walls)
-    pure = norm.(sv.-df.recpos)
-    return (id = i, time = t, svpos = sv, recpos = df.recpos, mpmeas = mp, mpmode = mpmode, gtmeas = pure, svvel = df.svvel)
+    mp, mpmode = getmpmeasurements(df.RecPos, sv, walls)
+    pure = norm.(sv.-df.RecPos)
+    return (Id = i, Time = t, SvPos = df.SvPos, RecPos = df.RecPos, L1 = mp, MPMode = mpmode, GTMeas = pure, SvVel = df.SvVel)
 end
 
 

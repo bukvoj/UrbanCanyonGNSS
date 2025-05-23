@@ -21,7 +21,7 @@ function meas(x,u,p,t)
     end
     for i in 1:numsvs
         los = (svpos[i]-x[1:3]) / norm(svpos[i]-x[1:3])
-        y[i + 2*numsvs] = -los'*(svvel[i] - x[4:6]) - x[8]
+        y[i + (1+l2available)*numsvs] = -los'*(svvel[i] - x[4:6]) - x[8]
         if l2available
             y[i + 3*numsvs] = -los'*(svvel[i] - x[4:6]) - x[8]
         end
@@ -36,8 +36,8 @@ function meas_jac(x,u,p,t)
     numsvs = length(p[1])
     svpos = p[1]
     valid = p[3]
-
     l2available = (length(p[4]) == 2*numsvs)
+    
     if l2available
         J = zeros(4*numsvs,8)
         for i in 1:numsvs

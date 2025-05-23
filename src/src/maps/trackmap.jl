@@ -1,6 +1,3 @@
-using Geodesy
-using NearestNeighbors
-
 struct Waypoint
     lla::LLA
     ecef::ECEF

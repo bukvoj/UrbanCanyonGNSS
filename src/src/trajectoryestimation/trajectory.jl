@@ -1,14 +1,3 @@
-# DEPENDENCIES:
-# TODO
-using Geodesy, LowLevelParticleFilters, LinearAlgebra, Dates, Statistics, Distributions, TimesDates
-
-
-include("../maps/trackmap.jl")
-include("../maps/map3d.jl")
-include("../maps/dist2map.jl")
-
-include("../mpmitigation/mpestimation.jl")
-
 function trajectory(data::DataFrame;       # Created by init_batch_processing() or the simulation script
     runmpestimation = false,    # Run multipath estimation algorithm
     elanglelookup = nothing,    # Elevation angle lookup table
@@ -83,13 +72,18 @@ function trajectory(data::DataFrame;       # Created by init_batch_processing() 
     for t in uniquetimes
         unixtime = timedate2unix(t)
         fillmeas!(t, y, ssi, valid, svpos, svvel, data, numsvs)
-        az, el = lookangles(svpos, ECEF(kf.x[1],kf.x[2],kf.x[3]); unit=:deg)
+        if usel2
+            az, el = lookangles(svpos, ECEF(kf.x[1],kf.x[2],kf.x[3]); unit=:deg)
+        else
+            az, el = enulookangles(svpos, ECEF(kf.x[1],kf.x[2],kf.x[3]); unit=:deg)
+        end
+
         if usel2
             valid[vcat(el .< maskangle,el .< maskangle,el .< maskangle,el .< maskangle)] .= 0
             valid[vcat(ssi .< ssimask, ssi .< ssimask)] .= 0
         else
             valid[vcat(el .< maskangle,el .< maskangle)] .= 0
-            valid[ssi .< ssimask] .= 0
+            valid[vcat(ssi .< ssimask, ssi .< ssimask)] .= 0
         end
 
         # Parameters for the filter
@@ -254,3 +248,31 @@ function usechunkmap!(R, map3d, pos::ECEF, trackmap::TrackMap, svpos, valid)
 end
 
 
+
+
+
+
+
+
+
+
+function enulookangles(svpos::AbstractArray, recpos; unit = :rad)
+    # Compute the look angles of the satellites in ENU coordinates
+    # svpos: array of satellite positions in ENU coordinates
+    # recpos: receiver position in ENU coordinates (ECEF object but ENU frame, sorry)
+    # unit: unit of the output angles (rad or deg)
+    numsvs = length(svpos)
+    az = zeros(numsvs)
+    el = zeros(numsvs)
+
+    for i in eachindex(svpos)
+        az[i] = mod(pi/2 - atan(svpos[i][2]-recpos[2], svpos[i][1]-recpos[1]), 2*pi) # azimuth angle
+        el[i] = atan(svpos[i][3]-recpos[3], sqrt((svpos[i][1]-recpos[1])^2 + (svpos[i][2]-recpos[2])^2)) # elevation angle
+    end
+
+    if unit == :deg
+        az .= az * 180 / π
+        el .= el * 180 / π
+    end
+    return az, el
+end

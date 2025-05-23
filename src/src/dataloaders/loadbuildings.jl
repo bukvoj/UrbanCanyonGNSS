@@ -78,7 +78,7 @@ function wallsfromdirectory(path::String, center_lla::AbstractArray; filestartsw
     verbose::Bool: if true, print the names of the files being loaded
     """
     bs = buildingsfromdirectory(path, filestartswith=filestartswith, verbose=verbose)
-    refpoint = GeoStats.Point{🌐}(GeodeticLatLonAlt(Geodeticcenter_lla[1], center_lla[2], center_lla[3]))
+    refpoint = GeoStats.Point{🌐}(GeodeticLatLonAlt(center_lla[1], center_lla[2], center_lla[3]))
     walls = buildings2walls(bs, refpoint)
     return walls
 end

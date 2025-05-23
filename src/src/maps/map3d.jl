@@ -1,7 +1,3 @@
-using GeoStats
-
-include("trackmap.jl")
-
 struct Map3D
     center::GeoStats.Point
     chunksize::Float64

@@ -1,5 +1,5 @@
 struct ElangleLookup
-    knntree::KNNTree
+    knntree::KDTree
     elangle::Matrix{Float64}
 end
 
