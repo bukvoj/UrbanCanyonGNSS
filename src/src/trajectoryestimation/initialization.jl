@@ -1,3 +1,73 @@
+using Klobuchar, GNSSEphemeris
+
+include("../measurementmodels/tropo.jl")
+include("../measurementmodels/clk_corrections.jl")
+
+function init_batch_processing(obs, nav; prevresults = nothing, useklobuchar=true, usetropospheric=true)
+    
+    obs = deepcopy(obs.data)
+    nav = deepcopy(nav)
+
+    ionoparams = nav.header.ionocorrections.GPS
+    ionoalpha = [ionoparams.a0,ionoparams.a1, ionoparams.a2, ionoparams.a3]
+    ionobeta = [ionoparams.b0,ionoparams.b1, ionoparams.b2, ionoparams.b3]
+
+    # Remove SVs without ephemeris data
+    rm_missing!(obs.GPS, nav.data.GPS)
+    rm_missing!(obs.GALILEO, nav.data.GALILEO)
+    rm_missing!(obs.BEIDOU, nav.data.BEIDOU)
+
+    # Renumber SVs in obs, nav data to have them numbered from 1 to numsvs
+    numsvs = renumber!(nav, obs)
+
+    # Get SV positions and velocities and add them to the obs data
+    svpos!(obs, nav; results=prevresults) 
+
+    # Corrections
+    applyclock!(obs,nav) # Apply satellite clock corrections
+    if useklobuchar
+        applyklobuchar!(obs, nav, ionoalpha, ionobeta)
+    end
+    if usetropospheric
+        applytropo!(obs, nav) # Apply tropospheric corrections
+    end
+
+    # normalize doppler measurements
+    normalizedoppler!(obs)
+
+    # Connect the data into single dataframe
+    times = vcat(obs.GPS.Time, obs.BEIDOU.Time, obs.GALILEO.Time)
+    l1 = vcat(obs.GPS.C1C, obs.BEIDOU.C1I, obs.GALILEO.C1X)
+    l2 = vcat(obs.GPS.C2X, obs.BEIDOU.C7I, obs.GALILEO.C7X)
+
+    d1 = vcat(obs.GPS.D1C, obs.BEIDOU.D1I, obs.GALILEO.D1X)
+    d2 = vcat(obs.GPS.D2X, obs.BEIDOU.D7I, obs.GALILEO.D7X)
+    ssi1 = vcat(obs.GPS.C1C_SSI, obs.BEIDOU.C1I_SSI, obs.GALILEO.C1X_SSI)
+    ssi2 = vcat(obs.GPS.C2X_SSI, obs.BEIDOU.C7I_SSI, obs.GALILEO.C7X_SSI)
+
+    svpos = vcat(obs.GPS.SvPos, obs.BEIDOU.SvPos, obs.GALILEO.SvPos)
+    svvel = vcat(obs.GPS.SvVel, obs.BEIDOU.SvVel, obs.GALILEO.SvVel)
+
+    # Create the dataframe
+    df = DataFrame(
+        Time = times,
+        SatelliteID = vcat(obs.GPS.SatelliteID, obs.BEIDOU.SatelliteID, obs.GALILEO.SatelliteID),
+        L1 = l1,
+        L2 = l2,
+        D1 = d1,
+        D2 = d2,
+        L1_SSI = ssi1,
+        L2_SSI = ssi2,
+        SvPos = svpos,
+        SvVel = svvel
+    )
+    # Sort using time
+    sort!(df, [:Time], rev=false)
+    return df
+end
+
+
+
 function rm_missing!(obsdata,navdata)
     ids = unique(obsdata.SatelliteID)
     filter!(:SatelliteID => in(navdata.SatelliteID), obsdata)
@@ -11,7 +81,6 @@ function svpos!(obs, nav; results = nothing)
     galoffets = zeros(length(obs.GALILEO.SatelliteID)) * Nanosecond(1)
 
     if !isnothing(results)
-        println("applying prevresults")
         function findoffset(t, df, prevend)
             for r in prevend:length(df.time)
                 if df.time[r] == t

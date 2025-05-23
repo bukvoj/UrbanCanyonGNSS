@@ -1,8 +1,9 @@
 # DEPENDENCIES:
 # using Tyler
 # using GLMakie / CairoMakie
+using Tyler
 
-function geoplot(lats,lons; color = :blue, style = :scatter, provider = TileProviders.OpenStreetMap(:Mapnik), size = (900,900), markersize = 5, linewidth = 5, label = "")
+function geoplot(lats,lons; color = :blue, style = :scatter, provider = Tyler.TileProviders.OpenStreetMap(:Mapnik), size = (900,900), markersize = 5, linewidth = 5, label = "")
     minlat = minimum(lats)
     maxlat = maximum(lats)
     minlon = minimum(lons)
@@ -26,7 +27,7 @@ function geoplot(lats,lons; color = :blue, style = :scatter, provider = TileProv
     return m, route, fig, ax # call translate!(route, 0, 0, 10) when it disappears... because... reasons...
 end
 
-function geoplot!(m,lats,lons; color = :red, style = :scatter, provider = TileProviders.OpenStreetMap(:Mapnik),  markersize = 5, linewidth = 5, label = "")
+function geoplot!(m,lats,lons; color = :red, style = :scatter,  markersize = 5, linewidth = 5, label = "")
     if style == :scatter
         route = scatter!(m.axis, lons, lats; color = color, markersize = markersize, label = label)
     elseif style == :line
@@ -37,7 +38,7 @@ function geoplot!(m,lats,lons; color = :red, style = :scatter, provider = TilePr
     end
     
     wait(m)
-    return (m, route) # call translate!(route, 0, 0, 10) when it disappears... because... reasons...
+    return m, route, fig, ax # call translate!(route, 0, 0, 10) when it disappears... because... reasons...
 end
 
 
