@@ -11,6 +11,7 @@ module UrbanCanyonGNSS
     using Tyler, GLMakie
 
     include("utils.jl")
+    export rms
 
     
     include("maps/trackmap.jl")

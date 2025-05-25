@@ -1,7 +1,5 @@
 using GeoIO, GeoStats, XML, Geodesy
 
-include("../maps/trackmap.jl")
-
 function loadmap(mapfile, routefile)
     """
     Load the map of the route.
