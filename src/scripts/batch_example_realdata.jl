@@ -19,18 +19,6 @@ obsfile = "data/2024_10_7/rinex/line22_fromhostivartopohorelec.24O"
 
 
 
-# include("../src/utils.jl")
-# include("../src/visualisation/geoplot.jl")
-
-# include("../src/trajectoryestimation/initialization.jl")
-# include("../src/trajectoryestimation/trajectory.jl")
-
-# include("../src/motionmodels/cvm.jl")
-# include("../src/measurementmodels/measmodels.jl")
-# include("../src/measurementmodels/noise_model.jl") # Realini model
-
-
-
 # Load the RINEX files
 nav = rinexread(navfile)
 obs = rinexread(obsfile)

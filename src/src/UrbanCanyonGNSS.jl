@@ -2,7 +2,7 @@ module UrbanCanyonGNSS
     using Geodesy, GeoStats
     using XML, DataFrames
     using NearestNeighbors, LowLevelParticleFilters
-    using Statistics, Distributions, LinearAlgebra
+    using Statistics, Distributions, LinearAlgebra, Interpolations
 
     using Serialization
     using RinexRead, GNSSEphemeris, Klobuchar, GNSSMultipathSim

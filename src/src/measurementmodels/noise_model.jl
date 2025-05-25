@@ -1,7 +1,6 @@
 flag = @isdefined NOISEINTERPOLATORSHEADERGUARD
 
 if !flag
-    using Interpolations
     # const vel_interp = [0,3,6,9,12,15,18,21,24,27]
     const dbHz_interp = [30+3*i for i in 1:6]
     const vel0 = linear_interpolation(dbHz_interp, [0.26,0.2,0.14,0.1,0.08,0.05],extrapolation_bc=Interpolations.Line())
