@@ -1,32 +1,31 @@
 using Pkg
 Pkg.activate(".")
 
-
-Pkg.remove(RinexRead)
-Pkg.remove(GNSSEphemeris)
-Pkg.remove(Klobuchar)
-Pkg.remove(GNSSMultipathSim)
+# Yeah, the packages are not registered, 
+# calling resolve resolves into error
+# so we remove them first, then resolve and instantiate
+# and then add them again
+try
+    Pkg.rm("RinexRead")
+    Pkg.rm("GNSSEphemeris")
+    Pkg.rm("Klobuchar")
+    Pkg.rm("GNSSMultipathSim")
+catch e
+    nothing
+end
+Pkg.resolve()
 Pkg.instantiate()
 
-# Pkg.add("GLMakie")
-# Pkg.add("CairoMakie")
-# Pkg.add("DataFrames")
-# Pkg.add("Geodesy")
-# Pkg.add("GeoStats")
-# Pkg.add("GeoIO")
-# Pkg.add("XML")
-# Pkg.add("NearestNeighbors")
-# Pkg.add("LowLevelParticleFilters")
-# Pkg.add("Statistics")
-# Pkg.add("Distributions")
-# Pkg.add("LinearAlgebra")
-# Pkg.add("Serialization")
-# Pkg.add("Dates")
-# Pkg.add("TimesDates")
-# Pkg.add("Tyler")
-# Pkg.add("Interpolations")
-# My packages are not registered yet, so we use the git url
+# add the packages again
 Pkg.add(url="https://github.com/bukvoj/RinexRead.jl")
 Pkg.add(url="https://github.com/bukvoj/GNSSEphemeris.jl")
 Pkg.add(url="https://github.com/bukvoj/Klobuchar.jl")
 Pkg.add(url="https://github.com/bukvoj/GNSSMultipathSim.jl")
+
+# Create directories for results and simulated data if they do not exist
+if !isdir("results/")
+    mkdir("results/")
+end
+if !isdir("simulateddata/")
+    mkdir("simulateddata/")
+end
