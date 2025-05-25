@@ -1,5 +1,5 @@
 module UrbanCanyonGNSS
-    using Geodesy, GeoStats
+    using Geodesy, GeoStats, GeoIO
     using XML, DataFrames
     using NearestNeighbors, LowLevelParticleFilters
     using Statistics, Distributions, LinearAlgebra, Interpolations

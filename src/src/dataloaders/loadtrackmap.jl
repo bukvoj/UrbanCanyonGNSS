@@ -1,5 +1,3 @@
-using GeoIO, GeoStats, XML, Geodesy
-
 function loadmap(mapfile, routefile)
     """
     Load the map of the route.
