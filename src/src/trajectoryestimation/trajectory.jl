@@ -94,14 +94,15 @@ function trajectory(data::DataFrame;       # Created by init_batch_processing() 
 
         # Select the IEKF weights for the measurements 
         if !isnothing(noisemodel)
-            noisemodel!(kf.R2, kf.x, svpos, svvel, ssi, valid)
+            noisemodel(kf.R2, kf.x, svpos, svvel, ssi, valid)
         else
             kf.R2 = zeros((1 + usel2) * 2 * numsvs, (1 + usel2) * 2 * numsvs) + I((1 + usel2) * 2*numsvs) * σ^2
         end
         
         # NLOS removal using the elevation angle lookup table
         if (!isnothing(elanglelookup)) && (i > 1)
-            usempmap!(kf.R2, elanglelookup, kf, az, el) # change
+            # R, mpmap, ecefpos, az::AbstractArray, el::AbstractArray
+            usempmap!(kf.R2, elanglelookup, kf.x[1:3], az, el) # change
         end
         
         # NLOS removal using the environment map (map partitioning in the thesis...)

@@ -18,8 +18,15 @@ simdatafile = "simulateddata/multipathdata.dat"
 
 
 # Load the RINEX files
-mpdata = deserialize(simdatafile)
-println("Simulated multipath measurements loaded.")
+try
+    mpdata = deserialize(simdatafile)
+    println("Simulated multipath measurements loaded.")
+catch e
+    println("Error loading simulated multipath measurements: ", e)
+    println("Please run the simulation script using: include(\"simulate_multipath.jl\").")
+    return
+end
+
 
 # Prepare the observations for processing
 noisymeasurements, biases, t_offset0, t_offsetrate = genmeas(mpdata)
